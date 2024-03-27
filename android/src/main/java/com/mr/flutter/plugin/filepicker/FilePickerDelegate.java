@@ -221,6 +221,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     @SuppressWarnings("deprecation")
     private void startFileExplorer() {
         final Intent intent;
+        Intent intentChooser = null;
 
         // Temporary fix, remove this null-check after Flutter Engine 1.14 has landed on stable
         if (type == null) {
@@ -233,7 +234,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
             if (type.equals("image/*")) {
                 intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             } else {
-                intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
             }
             final Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath() + File.separator);
@@ -253,7 +254,11 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         }
 
         if (intent.resolveActivity(this.activity.getPackageManager()) != null) {
-            this.activity.startActivityForResult(intent, REQUEST_CODE);
+            if (intentChooser != null) {
+                this.activity.startActivityForResult(intentChooser, REQUEST_CODE);
+            } else {
+                this.activity.startActivityForResult(intent, REQUEST_CODE);
+            }
         } else {
             Log.e(TAG, "Can't find a valid activity to handle the request. Make sure you've a file explorer installed.");
             finishWithError("invalid_format_type", "Can't handle the provided file type.");
